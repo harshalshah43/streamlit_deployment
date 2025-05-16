@@ -5,12 +5,11 @@ import os
 EMAIL_CSV = "allmails.csv"
 ROWS_PER_PAGE = 5
 
-def load_data():
+def load_data(uploaded_file):
     # if not os.path.exists(EMAIL_CSV):
     #     st.error(f"'{EMAIL_CSV}' not found.")
     #     st.stop()
     # df = pd.read_csv(EMAIL_CSV)
-    uploaded_file = st.sidebar.file_uploader("Upload your file (CSV or Excel):", type=["csv", "xlsx"])
     if uploaded_file.name.endswith(".csv"):
         df = pd.read_csv(uploaded_file)
     else:
@@ -32,76 +31,77 @@ def get_next_unlabeled_index(df):
     unlabeled = df[df['label'].isna()]
     return unlabeled.index[0] if not unlabeled.empty else None
 
-st.set_page_config(page_title="Email Annotator")
+st.set_page_config(page_title="Email Annotattion Tool", layout="wide")  # Wide layout
 
-df = load_data()
+uploaded_file = st.sidebar.file_uploader("Upload your file to Start Annotation (CSV or Excel):", type=["csv", "xlsx"])
+if uploaded_file:
+    df = load_data(uploaded_file)
+    # Tabs
+    tab1, tab2 = st.tabs(["📥 Annotate", "📊 View Data"])
 
-# Tabs
-tab1, tab2 = st.tabs(["📥 Annotate", "📊 View Data"])
+    # ------------------ TAB 1: Annotate ------------------ #
+    with tab1:
+        st.title("📥 Annotate Emails")
 
-# ------------------ TAB 1: Annotate ------------------ #
-with tab1:
-    st.title("📥 Annotate Emails")
+        if 'current_index' not in st.session_state:
+            next_index = get_next_unlabeled_index(df)
+            if next_index is None:
+                st.success("✅ All emails have been labeled!")
+                st.stop()
+            st.session_state.current_index = next_index
 
-    if 'current_index' not in st.session_state:
-        next_index = get_next_unlabeled_index(df)
-        if next_index is None:
-            st.success("✅ All emails have been labeled!")
-            st.stop()
-        st.session_state.current_index = next_index
+        
 
-    
+        if st.session_state.current_index is not None:
+            email = df.loc[st.session_state.current_index]
+            st.markdown(f"**Email {st.session_state.current_index + 1} of {len(df)}**")
+            st.subheader("Email Preview")
+            st.write(email['body'])
 
-    if st.session_state.current_index is not None:
-        email = df.loc[st.session_state.current_index]
-        st.markdown(f"**Email {st.session_state.current_index + 1} of {len(df)}**")
-        st.subheader("Email Preview")
-        st.write(email['body'])
+            current_label = email['label']
+            st.markdown(f"**Current Label:** `{current_label}`" if pd.notna(current_label) else "*No label assigned yet*")
 
-        current_label = email['label']
-        st.markdown(f"**Current Label:** `{current_label}`" if pd.notna(current_label) else "*No label assigned yet*")
+            col1, col2 = st.columns([1, 1])
+            if col1.button("👍 Yes"):
+                df.at[st.session_state.current_index, 'label'] = 'Yes'
+                save_data(df)
+                st.rerun()
 
-        col1, col2 = st.columns([1, 1])
-        if col1.button("👍 Yes"):
-            df.at[st.session_state.current_index, 'label'] = 'Yes'
-            save_data(df)
+            if col2.button("👎 No"):
+                df.at[st.session_state.current_index, 'label'] = 'No'
+                save_data(df)
+                st.rerun()
+
+        # Handle navigation buttons
+        nav_col1, nav_col2 = st.columns([1, 1])
+        if nav_col1.button("⬅️ Previous"):
+            st.session_state.current_index = max(0, st.session_state.current_index - 1)
+            st.rerun()
+        if nav_col2.button("➡️ Next"):
+            st.session_state.current_index = min(len(df) - 1, st.session_state.current_index + 1)
             st.rerun()
 
-        if col2.button("👎 No"):
-            df.at[st.session_state.current_index, 'label'] = 'No'
-            save_data(df)
-            st.rerun()
+        st.markdown("---")
+        st.write(f"Labeled: {df['label'].notna().sum()} / {len(df)}")
 
-    # Handle navigation buttons
-    nav_col1, nav_col2 = st.columns([1, 1])
-    if nav_col1.button("⬅️ Previous"):
-        st.session_state.current_index = max(0, st.session_state.current_index - 1)
-        st.rerun()
-    if nav_col2.button("➡️ Next"):
-        st.session_state.current_index = min(len(df) - 1, st.session_state.current_index + 1)
-        st.rerun()
+    # ------------------ TAB 2: View Data ------------------ #
+    with tab2:
+        st.title("📊 View Labeled and Unlabeled Emails")
 
-    st.markdown("---")
-    st.write(f"Labeled: {df['label'].notna().sum()} / {len(df)}")
+        view_option = st.radio("Select data to view:", ["Labeled", "Unlabeled"], horizontal=True)
 
-# ------------------ TAB 2: View Data ------------------ #
-with tab2:
-    st.title("📊 View Labeled and Unlabeled Emails")
+        if view_option == "Labeled":
+            view_df = df[df['label'].notna()][['id','body','label','has_attachment']].reset_index(drop=True)
+        else:
+            view_df = df[df['label'].isna()][['id','body','label','has_attachment']].reset_index(drop=True)
 
-    view_option = st.radio("Select data to view:", ["Labeled", "Unlabeled"], horizontal=True)
+        total_rows = len(view_df)
+        total_pages = (total_rows - 1) // ROWS_PER_PAGE + 1
 
-    if view_option == "Labeled":
-        view_df = df[df['label'].notna()][['id','body','label','has_attachment']].reset_index(drop=True)
-    else:
-        view_df = df[df['label'].isna()][['id','body','label','has_attachment']].reset_index(drop=True)
-
-    total_rows = len(view_df)
-    total_pages = (total_rows - 1) // ROWS_PER_PAGE + 1
-
-    if total_rows == 0:
-        st.info("No data to display.")
-    else:
-        page = st.number_input("Page", min_value=1, max_value=total_pages, value=1)
-        start_idx = (page - 1) * ROWS_PER_PAGE
-        end_idx = start_idx + ROWS_PER_PAGE
-        st.dataframe(view_df.iloc[start_idx:end_idx], use_container_width=True)
+        if total_rows == 0:
+            st.info("No data to display.")
+        else:
+            page = st.number_input("Page", min_value=1, max_value=total_pages, value=1)
+            start_idx = (page - 1) * ROWS_PER_PAGE
+            end_idx = start_idx + ROWS_PER_PAGE
+            st.dataframe(view_df.iloc[start_idx:end_idx], use_container_width=True)
