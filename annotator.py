@@ -2,21 +2,12 @@ import streamlit as st
 import pandas as pd
 import os
 
-EMAIL_CSV = "allmails.csv"
 ROWS_PER_PAGE = 5
 
-def load_data(uploaded_file):
-    # if not os.path.exists(EMAIL_CSV):
-    #     st.error(f"'{EMAIL_CSV}' not found.")
-    #     st.stop()
-    # df = pd.read_csv(EMAIL_CSV)
-    if uploaded_file.name.endswith(".csv"):
-        df = pd.read_csv(uploaded_file)
-    else:
-        xls = pd.ExcelFile(uploaded_file)
-        sheet_selected = st.sidebar.selectbox("Select Sheets",options = xls.sheet_names)
-        if sheet_selected:
-            df = pd.read_excel(uploaded_file,sheet_name = sheet_selected)
+st.set_page_config(page_title="Email Annotator")
+
+def load_uploaded_data(uploaded_file):
+    df = pd.read_csv(uploaded_file)
     if 'body' not in df.columns:
         st.error("CSV must contain a 'body' column.")
         st.stop()
@@ -25,15 +16,15 @@ def load_data(uploaded_file):
     return df
 
 def save_data(df):
-    df.to_csv(EMAIL_CSV, index=False)
+    st.session_state['annotated_df'] = df.copy()
 
 def get_next_unlabeled_index(df):
     unlabeled = df[df['label'].isna()]
     return unlabeled.index[0] if not unlabeled.empty else None
 
-st.set_page_config(page_title="Email Annotattion Tool", layout="wide")  # Wide layout
-
-uploaded_file = st.sidebar.file_uploader("Upload your file to Start Annotation (CSV or Excel):", type=["csv", "xlsx"])
+# ------------------ Upload Section ------------------ #
+st.sidebar.header("📤 Upload CSV")
+uploaded_file = st.sidebar.file_uploader("Choose a CSV file", type="csv")
 
 if not uploaded_file:
     st.markdown("""
@@ -65,11 +56,16 @@ if not uploaded_file:
         "label": [None, None, None]  # This will be filled during annotation
     })
 
-    st.dataframe(sample_df, use_container_width=True)   
-
+    st.dataframe(sample_df, use_container_width=True)
+    
 if uploaded_file:
-    df = load_data(uploaded_file)
-    # Tabs
+    if 'annotated_df' not in st.session_state:
+        df = load_uploaded_data(uploaded_file)
+        st.session_state['annotated_df'] = df
+    else:
+        df = st.session_state['annotated_df']
+
+    # ------------------ Tabs ------------------ #
     tab1, tab2 = st.tabs(["📥 Annotate", "📊 View Data"])
 
     # ------------------ TAB 1: Annotate ------------------ #
@@ -82,8 +78,6 @@ if uploaded_file:
                 st.success("✅ All emails have been labeled!")
                 st.stop()
             st.session_state.current_index = next_index
-
-        
 
         if st.session_state.current_index is not None:
             email = df.loc[st.session_state.current_index]
@@ -105,17 +99,17 @@ if uploaded_file:
                 save_data(df)
                 st.rerun()
 
-        # Handle navigation buttons
-        nav_col1, nav_col2 = st.columns([1, 1])
-        if nav_col1.button("⬅️ Previous"):
-            st.session_state.current_index = max(0, st.session_state.current_index - 1)
-            st.rerun()
-        if nav_col2.button("➡️ Next"):
-            st.session_state.current_index = min(len(df) - 1, st.session_state.current_index + 1)
-            st.rerun()
+            # Navigation buttons
+            nav_col1, nav_col2 = st.columns([1, 1])
+            if nav_col1.button("⬅️ Previous"):
+                st.session_state.current_index = max(0, st.session_state.current_index - 1)
+                st.rerun()
+            if nav_col2.button("➡️ Next"):
+                st.session_state.current_index = min(len(df) - 1, st.session_state.current_index + 1)
+                st.rerun()
 
-        st.markdown("---")
-        st.write(f"Labeled: {df['label'].notna().sum()} / {len(df)}")
+            st.markdown("---")
+            st.write(f"Labeled: {df['label'].notna().sum()} / {len(df)}")
 
     # ------------------ TAB 2: View Data ------------------ #
     with tab2:
@@ -124,9 +118,9 @@ if uploaded_file:
         view_option = st.radio("Select data to view:", ["Labeled", "Unlabeled"], horizontal=True)
 
         if view_option == "Labeled":
-            view_df = df[df['label'].notna()][['id','body','label','has_attachment']].reset_index(drop=True)
+            view_df = df[df['label'].notna()].reset_index(drop=True)
         else:
-            view_df = df[df['label'].isna()][['id','body','label','has_attachment']].reset_index(drop=True)
+            view_df = df[df['label'].isna()].reset_index(drop=True)
 
         total_rows = len(view_df)
         total_pages = (total_rows - 1) // ROWS_PER_PAGE + 1
@@ -138,3 +132,11 @@ if uploaded_file:
             start_idx = (page - 1) * ROWS_PER_PAGE
             end_idx = start_idx + ROWS_PER_PAGE
             st.dataframe(view_df.iloc[start_idx:end_idx], use_container_width=True)
+
+        # Optional: export annotated data
+        if view_option == "Labeled" and not view_df.empty:
+            csv = df.to_csv(index=False).encode('utf-8')
+            st.download_button("📥 Download Annotated CSV", data=csv, file_name="annotated_emails.csv", mime="text/csv")
+
+else:
+    st.info("👈 Please upload a CSV file with a `body` column to get started.")
