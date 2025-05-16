@@ -7,7 +7,7 @@ ROWS_PER_PAGE = 5
 st.set_page_config(page_title="Email Annotator")
 
 def load_uploaded_data(uploaded_file):
-    df = pd.read_csv(uploaded_file)
+    df = pd.read_csv(uploaded_file,encoding = 'utf-8')
     if 'body' not in df.columns:
         st.error("CSV must contain a 'body' column.")
         st.stop()
@@ -70,7 +70,7 @@ if uploaded_file:
 
     # ------------------ TAB 1: Annotate ------------------ #
     with tab1:
-        st.title("📥 Annotate Emails")
+        st.title("📥 **Annotate Emails**")
 
         if 'current_index' not in st.session_state:
             next_index = get_next_unlabeled_index(df)
