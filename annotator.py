@@ -34,6 +34,39 @@ def get_next_unlabeled_index(df):
 st.set_page_config(page_title="Email Annotattion Tool", layout="wide")  # Wide layout
 
 uploaded_file = st.sidebar.file_uploader("Upload your file to Start Annotation (CSV or Excel):", type=["csv", "xlsx"])
+
+if not uploaded_file:
+    st.markdown("""
+    ### 👋 Welcome to the Email Annotation Tool
+
+    Please follow these steps:
+
+    1. Upload a `.csv` or `.xlsx` file using the uploader in the sidebar.
+    2. Make sure your file has a `body` column (containing the email text).
+    3. Optional columns like `label`, `id`, or `has_attachment` will be auto-detected.
+    4. In the View Tab you can see your annotated data.
+
+    Once uploaded, texts in the **body column will automatically appear** and you'll be able to:
+    - Annotate email body using the **Annotate** tab.
+    - View or edit labeled/unlabeled emails in the **View Data** tab.
+    - Navigate Back and Forth to Edit/View Previously Marked Labels
+    """)
+
+    st.markdown("#### 📋 Sample Data Format (Order of columns is not necessary only body column must be present)")
+
+    sample_df = pd.DataFrame({
+        "id": [1, 2, 3],
+        "body": [
+            "Dear customer, your invoice is attached.",
+            "Reminder: Please submit your timesheet by Friday.",
+            "Congrats! You’ve won a gift card. Click to claim."
+        ],
+        "has_attachment": [True, False, False],
+        "label": [None, None, None]  # This will be filled during annotation
+    })
+
+    st.dataframe(sample_df, use_container_width=True)   
+
 if uploaded_file:
     df = load_data(uploaded_file)
     # Tabs
