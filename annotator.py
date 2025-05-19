@@ -140,7 +140,7 @@ if uploaded_file:
         # Optional: export annotated data
         if view_option == "Labeled" and not view_df.empty:
             output = io.BytesIO()
-            with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
+            with pd.ExcelWriter(output, engine='openpyxl') as writer:
                 df.to_excel(writer, index=False, sheet_name='Annotated')
                 writer.save()
                 xlsx_data = output.getvalue()
