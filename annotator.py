@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import os
+import io
 
 ROWS_PER_PAGE = 5
 
@@ -138,8 +139,11 @@ if uploaded_file:
 
         # Optional: export annotated data
         if view_option == "Labeled" and not view_df.empty:
-            csv = df.to_excel('annotated_emails.xlsx',index=False)
-            st.download_button("📥 Download Annotated CSV or XLSX", data=[csv,xlsx], file_name="annotated_emails.xlsx", mime="text/xlsx")
+            output = io.BytesIO()
+            with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
+                df.to_excel(writer, index=False, sheet_name='Annotated')
+                writer.save()
+                xlsx_data = output.getvalue()
 
 else:
     st.info("👈 Please upload a CSV or XLSX file with a `body` column to get started.")
