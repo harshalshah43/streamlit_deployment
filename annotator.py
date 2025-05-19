@@ -7,7 +7,10 @@ ROWS_PER_PAGE = 5
 st.set_page_config(page_title="Email Annotator")
 
 def load_uploaded_data(uploaded_file):
-    df = pd.read_csv(uploaded_file,encoding = 'utf-8')
+    if uploaded_file.name.endswith(".csv"):
+        df = pd.read_csv(uploaded_file,encoding = 'utf-8')
+    elif uploaded_file.name.endswith(".xlsx"):
+        df = pd.read_excel(uploaded_file)
     if 'body' not in df.columns:
         st.error("CSV must contain a 'body' column.")
         st.stop()
@@ -23,8 +26,8 @@ def get_next_unlabeled_index(df):
     return unlabeled.index[0] if not unlabeled.empty else None
 
 # ------------------ Upload Section ------------------ #
-st.sidebar.header("📤 Upload CSV")
-uploaded_file = st.sidebar.file_uploader("Choose a CSV file", type="csv")
+st.sidebar.header("📤 Upload CSV or XLSX")
+uploaded_file = st.sidebar.file_uploader("Choose a CSV or XLSX file", type=["csv", "xlsx"])
 
 if not uploaded_file:
     st.markdown("""
@@ -135,8 +138,8 @@ if uploaded_file:
 
         # Optional: export annotated data
         if view_option == "Labeled" and not view_df.empty:
-            csv = df.to_csv(index=False).encode('utf-8')
-            st.download_button("📥 Download Annotated CSV", data=csv, file_name="annotated_emails.csv", mime="text/csv")
+            csv = df.to_excel(index=False)
+            st.download_button("📥 Download Annotated CSV or XLSX", data=[csv,xlsx], file_name="annotated_emails.xlsx", mime="text/xlsx")
 
 else:
-    st.info("👈 Please upload a CSV file with a `body` column to get started.")
+    st.info("👈 Please upload a CSV or XLSX file with a `body` column to get started.")
