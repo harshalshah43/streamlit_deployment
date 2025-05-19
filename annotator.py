@@ -142,8 +142,8 @@ if uploaded_file:
             output = io.BytesIO()
             with pd.ExcelWriter(output, engine='openpyxl') as writer:
                 df.to_excel(writer, index=False, sheet_name='Annotated')
-                writer.save()
-                xlsx_data = output.getvalue()
+            output.seek(0)
+            xlsx_data = output.getvalue()
             st.download_button(
                 "📥 Download Annotated XLSX",
                 data=xlsx_data,
