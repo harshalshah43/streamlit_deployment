@@ -144,6 +144,12 @@ if uploaded_file:
                 df.to_excel(writer, index=False, sheet_name='Annotated')
                 writer.save()
                 xlsx_data = output.getvalue()
+            st.download_button(
+                "📥 Download Annotated XLSX",
+                data=xlsx_data,
+                file_name="annotated_emails.xlsx",
+                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            )
 
 else:
     st.info("👈 Please upload a CSV or XLSX file with a `body` column to get started.")
