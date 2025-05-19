@@ -138,7 +138,7 @@ if uploaded_file:
 
         # Optional: export annotated data
         if view_option == "Labeled" and not view_df.empty:
-            csv = df.to_excel(index=False)
+            csv = df.to_excel('annotated_emails.xlsx',index=False)
             st.download_button("📥 Download Annotated CSV or XLSX", data=[csv,xlsx], file_name="annotated_emails.xlsx", mime="text/xlsx")
 
 else:
