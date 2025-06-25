@@ -12,10 +12,10 @@ def load_uploaded_data(uploaded_file):
         df = pd.read_csv(uploaded_file,encoding = 'utf-8')
     elif uploaded_file.name.endswith(".xlsx"):
         df = pd.read_excel(uploaded_file)
-    if 'body' not in df.columns:
+    if 'body' not in [col.strip().lower() for col in df.columns]:
         st.error("CSV must contain a 'body' column.")
         st.stop()
-    if 'label' not in df.columns:
+    if 'label' not in [col.strip().lower() for col in df.columns]:
         df['label'] = None
     return df
 
