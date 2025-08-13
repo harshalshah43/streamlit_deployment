@@ -1,1 +1,50 @@
-First commit
+# Protected content based on topic
+    if topic == "Variables":
+        st.header("📌 Variables")
+        st.write("""
+        - Variables are used to store data values.
+        - Example:
+            ```python
+            x = 10
+            name = "Harshal"
+            ```
+        """)
+
+    elif topic == "Data Types":
+        st.header("📌 Data Types")
+        st.write("""
+        - Common Python data types:
+            - int
+            - float
+            - str
+            - bool
+            - list, tuple, set, dict
+        """)
+
+    elif topic == "Input and Output":
+        st.header("📌 Input and Output")
+        st.write("""
+        - `input()` is used to take user input (in terminal-based programs).
+        - `print()` is used to display output.
+        - Example:
+            ```python
+            name = input("Enter your name: ")
+            print(f"Hello {name}")
+            ```
+        """)
+
+
+Code snippet
+
+x = 5
+y = 4
+
+print(x + y)
+
+x = "Raj"   # DataType of x changes from int to str
+y= "Sharma" # DataType of x changes from int to str
+
+print(x + y)
+
+>> 9
+RajSharma

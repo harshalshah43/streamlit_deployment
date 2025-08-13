@@ -1,5 +1,6 @@
 import streamlit as st
 import auth  # Import our authentication module
+import os
 
 # Make page slightly wider
 st.set_page_config(layout="wide")
@@ -20,8 +21,21 @@ with container:
         unsafe_allow_html=True
     )
 
+TOPICS_DIR = "topics"
+
+def load_topic_files():
+    files = [f for f in os.listdir(TOPICS_DIR) if f.endswith((".md", ".txt",".html"))]
+    return {os.path.splitext(f)[0].replace("_", " ").title(): f for f in files}
+
+def load_topic_content(filename):
+    filepath = os.path.join(TOPICS_DIR, filename)
+    with open(filepath, "r", encoding="utf-8") as f:
+        return f.read()
+
 st.title("🔑 Learn Python Basics")
 
+
+# Main Workflow starts here
 if not auth.is_authenticated():
     auth.login()
 else:
@@ -30,49 +44,16 @@ else:
 
     # Sidebar navigation
     st.sidebar.title("📚 Topics")
-    topic = st.sidebar.radio(
-        "Select a topic:",
-        ("Variables", "Data Types", "Input and Output")
-    )
+    topics = load_topic_files()
+    
+    selected_topic = st.sidebar.selectbox("Select topic:", list(topics.keys()))
 
     # Logout button in sidebar
     if st.sidebar.button("Logout"):
         auth.logout()
         st.stop()
 
-    # Protected content based on topic
-    if topic == "Variables":
-        st.header("📌 Variables")
-        st.write("""
-        - Variables are used to store data values.
-        - Example:
-            ```python
-            x = 10
-            name = "Harshal"
-            ```
-        """)
-
-    elif topic == "Data Types":
-        st.header("📌 Data Types")
-        st.write("""
-        - Common Python data types:
-            - int
-            - float
-            - str
-            - bool
-            - list, tuple, set, dict
-        """)
-
-    elif topic == "Input and Output":
-        st.header("📌 Input and Output")
-        st.write("""
-        - `input()` is used to take user input (in terminal-based programs).
-        - `print()` is used to display output.
-        - Example:
-            ```python
-            name = input("Enter your name: ")
-            print(f"Hello {name}")
-            ```
-        """)
+    content = load_topic_content(topics[selected_topic])
+    st.markdown(content,unsafe_allow_html=True)
 
     st.success("You are inside the secure dashboard!")
