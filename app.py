@@ -47,14 +47,18 @@ else:
     st.sidebar.title("📚 Topics")
     topics = load_topic_files()
     
-    selected_topic = st.sidebar.selectbox("Select topic:", list(topics.keys()))
-
+    # selected_topic = st.sidebar.selectbox("Select topic:", list(topics.keys()))
+    selected_topic = st.sidebar.radio(
+        "Select a topic:",
+        tuple(topics.keys())
+    )
     # Logout button in sidebar
     if st.sidebar.button("Logout"):
         auth.logout()
         st.stop()
 
     content = load_topic_content(topics[selected_topic])
+    st.subheader(selected_topic)
     st.markdown(content,unsafe_allow_html=True)
 
     st.success("You are inside the secure dashboard!")
