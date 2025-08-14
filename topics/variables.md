@@ -1,7 +1,9 @@
-** Introduction to Variables **
+### Variables
 
-What is a variable ?
-- Variable is an identifier that helps identify data stored in the memory. For example: To store a person's age, name and email we can create three variables: name,age, email and assign value to each variable so that it can be retrieved later.
+#### Introduction to Variables
+
+#### What is a variable ?
++ Variable is an identifier that helps identify data stored in the memory. For example: To store a person's age, name and email we can create three variables: name,age, email and assign value to each variable so that it can be retrieved later.
 
 ```python
 name = "Raj Sharma"
@@ -9,8 +11,11 @@ age = 45
 email = "rajsharma4540@gmail.com"
 
 print("Name", name)
+> Name Raj Sharma
 print("Age", age)
-print("Email id", email) 
+> Age 45
+print("Email id", email)
+> Email id rajsharma45@gmail.com
 ```
 
 What can you do with a variable?
