@@ -50,7 +50,7 @@ else:
     # selected_topic = st.sidebar.selectbox("Select topic:", list(topics.keys()))
     selected_topic = st.sidebar.radio(
         "Select a topic:",
-        tuple(topics.keys())
+        sorted(tuple(topics.keys()))
     )
     # Logout button in sidebar
     if st.sidebar.button("Logout"):
