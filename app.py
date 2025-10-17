@@ -32,7 +32,7 @@ def load_topic_content(filename):
     with open(filepath, "r", encoding="utf-8") as f:
         return f.read()
 
-st.title("🔑 Learn Python Basics")
+st.title("🔑 Learn Basics Topics")
 
 
 # Main Workflow starts here
