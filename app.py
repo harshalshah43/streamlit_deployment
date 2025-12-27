@@ -41,7 +41,7 @@ if not auth.is_authenticated():
 else:
     user = auth.get_current_user()
     st.write(f"✅ Logged in as **{user['name']}**")
-    st.success("You are inside the secure dashboard!493284384y")
+    st.success("You are inside the secure dashboard!")
 
     # Sidebar navigation
     st.sidebar.title("📚 Topics")
