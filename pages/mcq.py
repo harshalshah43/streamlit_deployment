@@ -14,8 +14,15 @@ RESULTS_FILE = Path("quiz_results.json")
 
 def load_results():
     if RESULTS_FILE.exists():
-        with open(RESULTS_FILE, "r", encoding="utf-8") as f:
-            return json.load(f)
+        try:
+            with open(RESULTS_FILE, "r", encoding="utf-8") as f:
+                content = f.read().strip()
+                if not content:
+                    return []  # empty file -> return empty list
+                return json.loads(content)
+        except json.JSONDecodeError:
+            # Malformed file -> reset
+            return []
     return []
 
 
