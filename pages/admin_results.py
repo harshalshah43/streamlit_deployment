@@ -11,7 +11,7 @@ if not auth.is_authenticated():
     st.stop()
 
 user = auth.get_current_user()
-if user.get("role") != "admin":
+if user.get("role") != "Admin User":
     st.error("⛔ You are not authorized to view this page.")
     st.stop()
 
